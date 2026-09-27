@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { wedding } from '@/data/wedding';
+import { useWeddingData } from '@/hooks/useWeddingData';
 import { FloralDivider } from '@/components/Decorations';
 
 export function Countdown({ target }: { target: string }) {
@@ -44,14 +44,17 @@ export function Countdown({ target }: { target: string }) {
 }
 
 export function WeddingIntro() {
-  const { date } = wedding;
+  const { closestEvent, primaryDateLong } = useWeddingData();
+
+  if (!closestEvent) return null;
+
   return (
     <section
       id="intro"
       className="paper-grain relative flex min-h-screen flex-col items-center justify-center bg-ivory px-6 py-24 text-center"
     >
       <p className="reveal font-body text-[0.65rem] uppercase tracking-[0.34em] text-warm-gray">
-        {date.long}
+        {primaryDateLong}
       </p>
       <h2 className="reveal mt-8 font-display text-4xl leading-tight text-dark-brown sm:text-5xl">
         The Day Has Arrived!
@@ -60,8 +63,11 @@ export function WeddingIntro() {
         Days until we say I DO
       </p>
 
-      <div className="reveal mt-12">
-        <Countdown target={date.countdownTo} />
+      <div className="reveal mt-12 flex flex-col items-center">
+        <span className="mb-4 inline-block rounded-full bg-gold/15 px-4 py-1.5 font-body text-xs uppercase tracking-widest text-dark-brown">
+          Next Event: {closestEvent.title}
+        </span>
+        <Countdown target={closestEvent.countdown_target} />
       </div>
 
       <div className="reveal mt-16 max-w-xs">
@@ -69,7 +75,8 @@ export function WeddingIntro() {
       </div>
 
       <p className="reveal mt-10 max-w-sm font-body text-sm font-light leading-relaxed text-muted-brown">
-        We invite you to witness the beginning of our forever — a day of love,
+        We invite you to witness the beginning of our forever <br />
+        a day of love,
         family, and celebration.
       </p>
     </section>

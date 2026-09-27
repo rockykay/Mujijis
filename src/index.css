@@ -127,3 +127,9 @@ section { overflow-x: clip; }
 /* Safe-area padding helpers */
 .pb-safe { padding-bottom: var(--safe-bottom); }
 .pt-safe { padding-top: var(--safe-top); }
+
+/* Ping animation used by audio button pulse ring */
+@keyframes ping {
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+}
+

@@ -7,6 +7,7 @@ export type RSVPData = {
   attending: boolean;
   guestCount: number;
   message?: string;
+  eventsAttending: 'both' | 'gusaba' | 'white';
 };
 
 export type RSVPResult = { ok: boolean; error?: string };
@@ -23,6 +24,7 @@ export async function submitRSVP(data: RSVPData): Promise<RSVPResult> {
         attending: data.attending,
         guest_count: data.guestCount,
         message: data.message || null,
+        events_attending: data.eventsAttending,
       });
       if (error) {
         console.error('RSVP insert failed', error);

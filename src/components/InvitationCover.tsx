@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { wedding } from '@/data/wedding';
+import { useWeddingData } from '@/hooks/useWeddingData';
 import { BotanicalCorner, BirdIllustration, WaxSeal, FloralDivider } from '@/components/Decorations';
 
 type InvitationCoverProps = {
@@ -13,9 +13,12 @@ export function InvitationCover({
   onOpen,
   onClose,
 }: InvitationCoverProps = {}) {
+  const { config, primaryDateShort } = useWeddingData();
   const [uncontrolledOpened, setUncontrolledOpened] = useState(false);
   const isControlled = controlledOpened !== undefined;
   const opened = isControlled ? controlledOpened : uncontrolledOpened;
+
+  if (!config) return null;
 
   const handleOpen = () => {
     if (!isControlled) setUncontrolledOpened(true);
@@ -60,7 +63,7 @@ export function InvitationCover({
         style={
           opened
             ? {
-                backgroundImage: `linear-gradient(rgba(24, 22, 20, 0.34), rgba(24, 22, 20, 0.55)), url(${wedding.cover.backgroundImage})`,
+                backgroundImage: `linear-gradient(rgba(24, 22, 20, 0.34), rgba(24, 22, 20, 0.55)), url(${config.cover_background_image})`,
                 backgroundPosition: 'center',
                 backgroundSize: 'cover',
               }
@@ -78,7 +81,7 @@ export function InvitationCover({
               opened ? 'text-paper/80' : 'text-warm-gray'
             }`}
           >
-            {wedding.cover.eyebrow}
+            {config.cover_eyebrow}
           </p>
 
           <h1
@@ -86,7 +89,7 @@ export function InvitationCover({
               opened ? 'text-paper drop-shadow-[0_2px_12px_rgba(0,0,0,0.25)]' : 'text-muted-brown'
             }`}
           >
-            {wedding.couple.script}
+            {config.couple_script}
           </h1>
 
           <p
@@ -94,21 +97,21 @@ export function InvitationCover({
               opened ? 'text-paper/80' : 'text-warm-gray'
             }`}
           >
-            {wedding.cover.request}
+            {config.cover_request}
           </p>
 
           <button
             type="button"
             onClick={handleOpen}
             disabled={opened}
-            aria-label={opened ? 'Invitation opened' : wedding.cover.openLabel}
+            aria-label={opened ? 'Invitation opened' : config.cover_openLabel || 'Click the seal to open'}
             className={`group relative my-6 rounded-full touch-manipulation transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:ring-2 focus-visible:ring-gold/70 sm:my-8 ${
               opened ? 'pointer-events-none scale-[5] opacity-0' : 'hover:scale-105 active:scale-95'
             }`}
           >
-            <WaxSeal initials={wedding.couple.initials} size={118} />
+            <WaxSeal initials={config.initials} size={118} />
             <span className="absolute -bottom-7 left-1/2 w-max -translate-x-1/2 font-body text-[0.55rem] uppercase tracking-[0.24em] text-warm-gray opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-              {wedding.cover.openLabel}
+              {config.cover_openLabel || 'Click the seal to open'}
             </span>
           </button>
 
@@ -117,7 +120,7 @@ export function InvitationCover({
               opened ? 'text-paper drop-shadow-[0_2px_12px_rgba(0,0,0,0.25)]' : 'text-dark-brown'
             }`}
           >
-            {wedding.cover.invitation}
+            {config.cover_invitation}
           </p>
 
           <div className="mt-6 max-w-[12rem] sm:mt-8 sm:max-w-[14rem]">
@@ -129,7 +132,7 @@ export function InvitationCover({
               opened ? 'text-paper/80' : 'text-warm-gray'
             }`}
           >
-            {wedding.date.short}
+            {primaryDateShort}
           </p>
 
           <button

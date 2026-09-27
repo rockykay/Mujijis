@@ -1,17 +1,14 @@
-import { useState } from 'react';
-import { wedding, type Venue } from '@/data/wedding';
+import { useState, useEffect } from 'react';
+import { useWeddingData } from '@/hooks/useWeddingData';
+import { type Venue } from '@/data/wedding';
 import { SectionOrnament, BotanicalCorner } from '@/components/Decorations';
 import { MapPin, ChevronRight, Compass } from 'lucide-react';
 
-const tabs = [
-  { id: 'intro', label: 'Introduction' },
-  { id: 'church', label: 'Church' },
-  { id: 'reception', label: 'Reception' },
-] as const;
+// Tabs computed dynamically from venues
 
 function VenueCard({ venue }: { venue: Venue }) {
   return (
-    <div className="reveal rounded-2xl border border-line bg-paper/90 p-7 text-center shadow-[0_18px_40px_-28px_rgba(81,72,63,0.5)] sm:p-9">
+    <div className="rounded-2xl border border-line bg-paper/90 p-7 text-center shadow-[0_18px_40px_-28px_rgba(81,72,63,0.5)] sm:p-9">
       <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-line text-muted-brown">
         <MapPin size={18} strokeWidth={1.3} />
       </div>
@@ -44,8 +41,20 @@ function VenueCard({ venue }: { venue: Venue }) {
 }
 
 export function VenueSection() {
-  const [active, setActive] = useState<typeof tabs[number]['id']>('intro');
-  const venue = wedding.venues.find((v) => v.category === active) ?? wedding.venues[0];
+  const { venues } = useWeddingData();
+  const tabs = venues.map(v => ({ id: v.category, label: v.category.charAt(0).toUpperCase() + v.category.slice(1) }));
+  
+  const [active, setActive] = useState<string>('');
+  
+  useEffect(() => {
+    if (!active && tabs.length > 0) {
+      setActive(tabs[0].id);
+    }
+  }, [tabs, active]);
+
+  const venue = venues.find((v) => v.category === active) ?? venues[0];
+
+  if (!venue) return null;
 
   return (
     <section id="venues" className="paper-grain relative bg-ivory px-6 py-24">

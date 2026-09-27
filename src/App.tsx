@@ -7,12 +7,20 @@ import { GallerySection } from '@/components/GallerySection';
 import { RSVPSection } from '@/components/RSVPSection';
 import { AudioControl } from '@/components/AudioControl';
 import { Footer } from '@/components/Footer';
+import { useWeddingData } from '@/hooks/useWeddingData';
+import { Loader2 } from 'lucide-react';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
 
 export default function App() {
+  const { loading, config, events } = useWeddingData();
   const [opened, setOpened] = useState(false);
+
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 
   // Prevent any scrolling until the seal is opened.
   useEffect(() => {
+    if (isAdminRoute) return;
+
     if (!opened) {
       window.scrollTo(0, 0);
 
@@ -56,10 +64,12 @@ export default function App() {
         window.removeEventListener('keydown', preventScrollKeys);
       };
     }
-  }, [opened]);
+  }, [opened, isAdminRoute]);
 
   // Activate reveal-on-scroll for every .reveal element once opened.
   useEffect(() => {
+    if (isAdminRoute) return;
+
     if (typeof IntersectionObserver === 'undefined') {
       document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'));
       return;
@@ -79,7 +89,19 @@ export default function App() {
     const elements = document.querySelectorAll('.reveal');
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [opened]);
+  }, [opened, loading, isAdminRoute]);
+
+  if (isAdminRoute) {
+    return <AdminDashboard />;
+  }
+
+  if (loading || !config) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ivory">
+        <Loader2 className="animate-spin text-gold" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div

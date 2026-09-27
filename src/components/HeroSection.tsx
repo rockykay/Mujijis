@@ -7,7 +7,7 @@ export function HeroSection() {
         <div className="relative aspect-[3/4] w-full overflow-hidden sm:aspect-[4/5]">
           <img
             src={wedding.heroImage}
-            alt="Amani and Marcus embracing on their wedding day"
+            alt="Dania and Kevin embracing on their wedding day"
             className="h-full w-full object-cover"
             loading="eager"
             fetchPriority="high"

@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { wedding, type ScheduleEvent } from '@/data/wedding';
+import { useState, useEffect } from 'react';
+import { useWeddingData } from '@/hooks/useWeddingData';
+import { type ScheduleEvent } from '@/data/wedding';
 import { SectionOrnament, BotanicalCorner } from '@/components/Decorations';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
 import {
@@ -32,7 +33,7 @@ function TimelineItem({ event, index }: { event: ScheduleEvent; index: number })
   const Icon = iconMap[event.icon];
   const isLast = false;
   return (
-    <div className="reveal relative flex gap-5 pb-10 last:pb-0">
+    <div className="relative flex gap-5 pb-10 last:pb-0">
       <div className="flex flex-col items-center">
         <div className="grid h-11 w-11 place-items-center rounded-full border border-line bg-paper text-muted-brown">
           <Icon size={16} strokeWidth={1.3} />
@@ -54,8 +55,19 @@ function TimelineItem({ event, index }: { event: ScheduleEvent; index: number })
 }
 
 export function ScheduleSection() {
-  const [activeId, setActiveId] = useState(wedding.schedules[0].id);
-  const active = wedding.schedules.find((s) => s.id === activeId) ?? wedding.schedules[0];
+  const { schedules } = useWeddingData();
+  const [activeId, setActiveId] = useState(schedules[0]?.id || '');
+
+  // Keep it updated if activeId is empty initially
+  useEffect(() => {
+    if (!activeId && schedules.length > 0) {
+      setActiveId(schedules[0].id);
+    }
+  }, [schedules, activeId]);
+
+  const active = schedules.find((s) => s.id === activeId) ?? schedules[0];
+
+  if (!active) return null;
 
   return (
     <section
@@ -80,7 +92,7 @@ export function ScheduleSection() {
           aria-label="Wedding program schedule"
           className="reveal mt-10 flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:justify-center sm:overflow-visible [&::-webkit-scrollbar]:hidden"
         >
-          {wedding.schedules.map((day) => {
+          {schedules.map((day) => {
             const selected = day.id === activeId;
             return (
               <button

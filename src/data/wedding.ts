@@ -3,16 +3,16 @@ export type ScheduleEvent = {
   title: string;
   description: string;
   icon:
-    | 'arrival'
-    | 'drums'
-    | 'prayer'
-    | 'welcome'
-    | 'ceremony'
-    | 'ring'
-    | 'toast'
-    | 'dancing'
-    | 'dinner'
-    | 'sendoff';
+  | 'arrival'
+  | 'drums'
+  | 'prayer'
+  | 'welcome'
+  | 'ceremony'
+  | 'ring'
+  | 'toast'
+  | 'dancing'
+  | 'dinner'
+  | 'sendoff';
 };
 
 export type ScheduleDay = {
@@ -44,9 +44,9 @@ export const wedding = {
     backgroundImage: '/images/AXX_3641.jpg',
   },
   date: {
-    long: 'Saturday, the 14th of February 2026',
-    short: '14 · 02 · 2026',
-    countdownTo: '2026-02-14T10:00:00',
+    long: 'Saturday, the 19th of December 2026',
+    short: '19 · 12 · 2026',
+    countdownTo: '2026-12-19T10:00:00',
   },
   heroImage:
     'https://images.pexels.com/photos/16542556/pexels-photo-16542556.jpeg?auto=compress&cs=tinysrgb&h=1400',
