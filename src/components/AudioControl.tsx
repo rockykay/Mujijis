@@ -12,8 +12,6 @@ export function AudioControl() {
     if (isPlaying) return;
     const onFirstInteraction = () => {
       void play();
-      window.removeEventListener('pointerdown', onFirstInteraction);
-      window.removeEventListener('keydown', onFirstInteraction);
     };
     window.addEventListener('pointerdown', onFirstInteraction, { once: true });
     window.addEventListener('keydown', onFirstInteraction, { once: true });
