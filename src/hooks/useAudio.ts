@@ -8,14 +8,13 @@ export function useAudio(src: string) {
   useEffect(() => {
     const audio = new Audio(src);
     audio.loop = true;
-    // Use 'metadata' so the browser fetches just enough to know the duration,
-    // but still allows play() to work on first user interaction without a
-    // "no data buffered" rejection on deployed HTTPS origins.
+    // 'metadata' lets the browser fetch headers so it knows the file exists,
+    // without pre-downloading the whole file.
     audio.preload = 'metadata';
     audioRef.current = audio;
 
     const onReady = () => setIsReady(true);
-    const onPlay = () => setIsPlaying(true);
+    const onPlay  = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
     const onEnded = () => setIsPlaying(false);
 
@@ -37,44 +36,30 @@ export function useAudio(src: string) {
     };
   }, [src]);
 
-  const tryPlay = useCallback(async () => {
+  /**
+   * iOS Safari CRITICAL: play() must be called synchronously inside
+   * a user-gesture handler — no awaits before it or iOS blocks it.
+   * We call play() immediately and handle the returned Promise separately.
+   */
+  const tryPlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    try {
-      // If not enough data yet, wait for canplay before attempting.
-      if (audio.readyState < 3 /* HAVE_FUTURE_DATA */) {
-        await new Promise<void>((resolve, reject) => {
-          const onCan = () => { cleanup(); resolve(); };
-          const onErr = () => { cleanup(); reject(); };
-          const cleanup = () => {
-            audio.removeEventListener('canplay', onCan);
-            audio.removeEventListener('error', onErr);
-          };
-          audio.addEventListener('canplay', onCan, { once: true });
-          audio.addEventListener('error', onErr, { once: true });
-          // Kick off load if it hasn't started
-          if (audio.networkState === HTMLMediaElement.NETWORK_EMPTY) {
-            audio.load();
-          }
-        });
-      }
-      await audio.play();
-    } catch {
-      // Autoplay blocked or network error — leave isPlaying as false
-      setIsPlaying(false);
+
+    const promise = audio.play();
+    if (promise !== undefined) {
+      promise.catch(() => {
+        // Autoplay blocked (e.g. no gesture yet) or network error — ignore.
+        setIsPlaying(false);
+      });
     }
   }, []);
 
-  const play = useCallback(() => void tryPlay(), [tryPlay]);
-
-  const pause = useCallback(() => {
-    audioRef.current?.pause();
-  }, []);
-
+  const play   = useCallback(() => tryPlay(), [tryPlay]);
+  const pause  = useCallback(() => { audioRef.current?.pause(); }, []);
   const toggle = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.paused) void tryPlay();
+    if (audio.paused) tryPlay();
     else audio.pause();
   }, [tryPlay]);
 
