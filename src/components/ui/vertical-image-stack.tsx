@@ -217,16 +217,6 @@ export function VerticalImageStack({ images }: VerticalImageStackProps) {
         </div>
       </motion.div>
 
-      {/* Counter */}
-      <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20">
-        <div className="flex flex-col items-center">
-          <span className="text-4xl font-light text-dark-brown tabular-nums">
-            {String(currentIndex + 1).padStart(2, "0")}
-          </span>
-          <div className="my-2 h-px w-8 bg-dark-brown/20" />
-          <span className="text-sm text-muted-brown tabular-nums">{String(images.length).padStart(2, "0")}</span>
-        </div>
-      </div>
     </div>
   )
 }

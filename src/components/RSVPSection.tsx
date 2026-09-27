@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { submitRSVP, type RSVPData } from '@/lib/rsvp';
 import { SectionOrnament, FloralDivider, BotanicalCorner } from '@/components/Decorations';
+import { useWeddingData } from '@/hooks/useWeddingData';
 import {
   Minus,
   Plus,
@@ -8,6 +9,7 @@ import {
   X,
   Heart,
   Loader2,
+  Search,
 } from 'lucide-react';
 
 type Errors = Partial<Record<keyof RSVPData | 'email' | 'submit', string>>;
@@ -258,9 +260,17 @@ const inputClass =
   'w-full rounded-lg border border-line bg-paper/70 px-4 py-3 font-body text-sm text-dark-brown placeholder:text-warm-gray/60 transition-colors focus:border-gold/50 focus:bg-paper';
 
 export function RSVPForm() {
+  const { events } = useWeddingData();
+  const gusabaEvent = events.find(e => e.id === 'gusaba') || events[0];
+  const whiteEvent = events.find(e => e.id === 'white') || events[1];
+
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState(COUNTRIES[0].code);
+  const [showCountrySearch, setShowCountrySearch] = useState(false);
+  const [countrySearchQuery, setCountrySearchQuery] = useState('');
+  const countryRef = useRef<HTMLDivElement>(null);
+  
   const [email, setEmail] = useState('');
   const [attending, setAttending] = useState<boolean | null>(null);
   const [guestCount, setGuestCount] = useState(1);
@@ -270,6 +280,23 @@ export function RSVPForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (countryRef.current && !countryRef.current.contains(event.target as Node)) {
+        setShowCountrySearch(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredCountries = COUNTRIES.filter(c => 
+    c.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) || 
+    c.code.includes(countrySearchQuery)
+  );
+
+  const selectedCountry = COUNTRIES.find(c => c.code === countryCode) || COUNTRIES[0];
 
   const validate = (): Errors => {
     const e: Errors = {};
@@ -395,22 +422,54 @@ export function RSVPForm() {
         <label htmlFor="rsvp-phone" className="mb-2 block font-body text-xs uppercase tracking-[0.18em] text-warm-gray">
           Phone number <span className="text-gold">*</span>
         </label>
-        <div className="flex gap-2">
-          <div className="relative">
-            <select
-              value={countryCode}
-              onChange={(e) => setCountryCode(e.target.value)}
-              aria-label="Country code"
-              className={`h-full min-w-[5.5rem] shrink-0 appearance-none rounded-lg border border-line bg-paper/70 px-3 py-3 pr-7 font-body text-sm text-dark-brown whitespace-nowrap transition-colors focus:border-gold/50 ${errors.phone ? 'border-[#c98b6a]' : ''
-                }`}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="relative" ref={countryRef}>
+            <button
+              type="button"
+              onClick={() => setShowCountrySearch(!showCountrySearch)}
+              className={`flex h-[46px] items-center justify-between gap-2 min-w-[6.5rem] rounded-lg border border-line bg-paper/70 px-3 font-body text-sm text-dark-brown whitespace-nowrap transition-colors focus:border-gold/50 ${errors.phone ? 'border-[#c98b6a]' : ''}`}
             >
-              {COUNTRIES.map((c) => (
-                <option key={c.code + c.name} value={c.code}>
-                  {c.flag} {c.code}
-                </option>
-              ))}
-            </select>
-            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-warm-gray">▾</span>
+              <span>{selectedCountry.flag} {selectedCountry.code}</span>
+              <span className="text-warm-gray text-xs">▾</span>
+            </button>
+            
+            {showCountrySearch && (
+              <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-line bg-paper shadow-xl">
+                <div className="p-2 border-b border-line flex items-center gap-2">
+                  <Search size={14} className="text-warm-gray" />
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Search country or code..."
+                    value={countrySearchQuery}
+                    onChange={(e) => setCountrySearchQuery(e.target.value)}
+                    className="w-full bg-transparent text-sm text-dark-brown outline-none placeholder:text-warm-gray/60"
+                  />
+                </div>
+                <div className="max-h-60 overflow-y-auto p-1">
+                  {filteredCountries.length > 0 ? (
+                    filteredCountries.map((c) => (
+                      <button
+                        key={c.code + c.name}
+                        type="button"
+                        onClick={() => {
+                          setCountryCode(c.code);
+                          setShowCountrySearch(false);
+                          setCountrySearchQuery('');
+                        }}
+                        className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-dark-brown hover:bg-gold/10"
+                      >
+                        <span className="text-lg">{c.flag}</span>
+                        <span className="font-medium w-12">{c.code}</span>
+                        <span className="truncate text-muted-brown">{c.name}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-3 text-center text-sm text-warm-gray">No countries found</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
           <input
             id="rsvp-phone"
@@ -498,17 +557,28 @@ export function RSVPForm() {
           <label className="mb-2 block font-body text-xs uppercase tracking-[0.18em] text-warm-gray">
             Which events will you attend?
           </label>
-          <div className="relative">
-            <select
-              value={eventsAttending}
-              onChange={(e) => setEventsAttending(e.target.value as 'both' | 'gusaba' | 'white')}
-              className={inputClass + ' appearance-none pr-10'}
+          <div className="flex flex-col gap-2">
+            <label
+              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${eventsAttending === 'both' ? 'border-gold/60 bg-gold/10' : 'border-line bg-paper/60 hover:border-gold/40'}`}
             >
-              <option value="both">Both Events (Dec 12 & Dec 19)</option>
-              <option value="gusaba">Gusaba Only (Dec 12)</option>
-              <option value="white">White Wedding Only (Dec 19)</option>
-            </select>
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray">▾</span>
+              <input type="radio" name="eventsAttending" value="both" checked={eventsAttending === 'both'} onChange={() => setEventsAttending('both')} className="sr-only" />
+              <span className={`grid h-5 w-5 place-items-center rounded-full border shrink-0 ${eventsAttending === 'both' ? 'border-gold bg-gold/20 text-gold' : 'border-line text-transparent'}`}><Check size={12} strokeWidth={2} /></span>
+              <span className="font-body text-sm text-dark-brown">Both Events ({gusabaEvent?.display_date_short} & {whiteEvent?.display_date_short})</span>
+            </label>
+            <label
+              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${eventsAttending === 'gusaba' ? 'border-gold/60 bg-gold/10' : 'border-line bg-paper/60 hover:border-gold/40'}`}
+            >
+              <input type="radio" name="eventsAttending" value="gusaba" checked={eventsAttending === 'gusaba'} onChange={() => setEventsAttending('gusaba')} className="sr-only" />
+              <span className={`grid h-5 w-5 place-items-center rounded-full border shrink-0 ${eventsAttending === 'gusaba' ? 'border-gold bg-gold/20 text-gold' : 'border-line text-transparent'}`}><Check size={12} strokeWidth={2} /></span>
+              <span className="font-body text-sm text-dark-brown">Gusaba Only ({gusabaEvent?.display_date_long || gusabaEvent?.display_date_short})</span>
+            </label>
+            <label
+              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${eventsAttending === 'white' ? 'border-gold/60 bg-gold/10' : 'border-line bg-paper/60 hover:border-gold/40'}`}
+            >
+              <input type="radio" name="eventsAttending" value="white" checked={eventsAttending === 'white'} onChange={() => setEventsAttending('white')} className="sr-only" />
+              <span className={`grid h-5 w-5 place-items-center rounded-full border shrink-0 ${eventsAttending === 'white' ? 'border-gold bg-gold/20 text-gold' : 'border-line text-transparent'}`}><Check size={12} strokeWidth={2} /></span>
+              <span className="font-body text-sm text-dark-brown">White Wedding Only ({whiteEvent?.display_date_long || whiteEvent?.display_date_short})</span>
+            </label>
           </div>
         </div>
       )}
