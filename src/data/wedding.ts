@@ -116,6 +116,6 @@ export const wedding = {
     },
   ] as Venue[],
   audio: {
-    src: '/audio/wedding-music.mp3',
+    src: 'https://kvctrtcmhdhlzbtberny.supabase.co/storage/v1/object/public/Music/bien._chikwere_official_audio_mp3_7518_5782.mp3',
   },
 } as const;

@@ -5,7 +5,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 
 export function AudioControl() {
   const { config } = useWeddingData();
-  const { isPlaying, toggle, play } = useAudio(config?.audio_src || '/audio/wedding-music.mp3');
+  const { isPlaying, toggle, play } = useAudio(config?.audio_src || 'https://kvctrtcmhdhlzbtberny.supabase.co/storage/v1/object/public/Music/bien._chikwere_official_audio_mp3_7518_5782.mp3');
 
   // Respect autoplay restrictions: try once after the first user interaction.
   useEffect(() => {
